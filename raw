@@ -1,0 +1,32 @@
+from flask_sqlalchemy import SQLAlchemy
+
+db = SQLAlchemy()
+
+class Vendor(db.Model):
+    __tablename__ = 'vendors'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), nullable=False)
+    bore_values = db.relationship('BoreValue', backref='vendor', lazy=True)
+    rod_values = db.relationship('RodValue', backref='vendor', lazy=True)
+    
+class BoreValue(db.Model):
+    __tablename__ = 'bore_values'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    value = db.Column(db.Float, nullable=False)
+    vendor_id = db.Column(db.Integer, db.ForeignKey('vendors.id'), nullable=False)
+    rod_values = db.relationship('RodValue', secondary='bore_rod_association', backref='bore_values', lazy=True)
+    
+class RodValue(db.Model):
+    __tablename__ = 'rod_values'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    value = db.Column(db.Float, nullable=False)
+    vendor_id = db.Column(db.Integer, db.ForeignKey('vendors.id'), nullable=False)
+    bore_values = db.relationship('BoreValue', secondary='bore_rod_association', backref='rod_values', lazy=True)
+
+bore_rod_association = db.Table('bore_rod_association',
+    db.Column('bore_value_id', db.Integer, db.ForeignKey('bore_values.id'), primary_key=True),
+    db.Column('rod_value_id', db.Integer, db.ForeignKey('rod_values.id'), primary_key=True)
+)
